@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",
+  // Por defecto se usa una ruta relativa: nginx reenvía /api al backend en el mismo origen.
+  baseURL: import.meta.env.VITE_API_BASE_URL || "/api",
 });
 
 // Adjunta el token JWT guardado en localStorage a cada petición
@@ -17,7 +18,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
+    const esLogin = (error.config?.url || "").includes("/auth/login");
+    if (error.response && error.response.status === 401 && !esLogin) {
       localStorage.removeItem("iph_token");
       window.location.href = "/login";
     }

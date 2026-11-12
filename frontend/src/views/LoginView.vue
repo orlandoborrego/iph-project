@@ -18,12 +18,12 @@
         <form @submit.prevent="handleLogin" novalidate>
           <div class="login-field" :class="{ 'has-error': usuarioTouched && !usuario.trim() }">
             <label for="usuario">Usuario</label>
-            <div class="input-wrap"><span class="field-icon" aria-hidden="true">♙</span><input id="usuario" v-model.trim="usuario" autocomplete="username" name="username" required :aria-invalid="usuarioTouched && !usuario.trim()" aria-describedby="usuario-hint" placeholder="Tu usuario institucional" @blur="usuarioTouched = true" @input="error = ''" /></div>
+            <div class="input-wrap"><span class="field-icon" aria-hidden="true">♙</span><input id="usuario" v-model.trim="usuario" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" name="username" required :aria-invalid="usuarioTouched && !usuario.trim()" aria-describedby="usuario-hint" placeholder="Tu usuario institucional" @blur="usuarioTouched = true" @input="error = ''" /></div>
             <small v-if="usuarioTouched && !usuario.trim()" id="usuario-hint" class="field-hint">Ingresa tu usuario.</small>
           </div>
           <div class="login-field" :class="{ 'has-error': passwordTouched && !password }">
             <label for="password">Contraseña</label>
-            <div class="input-wrap"><span class="field-icon" aria-hidden="true">⌑</span><input id="password" v-model="password" :type="mostrarPassword ? 'text' : 'password'" autocomplete="current-password" name="password" required :aria-invalid="passwordTouched && !password" placeholder="Ingresa tu contraseña" @blur="passwordTouched = true" @input="error = ''" /><button class="password-toggle" type="button" :aria-label="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'" :aria-pressed="mostrarPassword" @click="mostrarPassword = !mostrarPassword">{{ mostrarPassword ? 'Ocultar' : 'Mostrar' }}</button></div>
+            <div class="input-wrap"><span class="field-icon" aria-hidden="true">⌑</span><input id="password" v-model="password" :type="mostrarPassword ? 'text' : 'password'" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" name="password" required :aria-invalid="passwordTouched && !password" placeholder="Ingresa tu contraseña" @blur="passwordTouched = true" @input="error = ''" /><button class="password-toggle" type="button" :aria-label="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'" :aria-pressed="mostrarPassword" @click="mostrarPassword = !mostrarPassword">{{ mostrarPassword ? 'Ocultar' : 'Mostrar' }}</button></div>
             <small v-if="passwordTouched && !password" class="field-hint">Ingresa tu contraseña.</small>
           </div>
           <div v-if="error" class="login-error" role="alert"><span aria-hidden="true">!</span>{{ error }}</div>
@@ -60,8 +60,12 @@ async function handleLogin() {
   try {
     await auth.login(usuario.value, password.value);
     await router.push({ name: "panel" });
-  } catch {
-    error.value = "No se pudo validar el acceso. Revisa tus credenciales e inténtalo de nuevo.";
+  } catch (err) {
+    if (!err?.response) {
+      error.value = "No hay conexión con el servidor. Verifica tu red e inténtalo de nuevo.";
+    } else {
+      error.value = err.response.data?.msg || "No se pudo validar el acceso. Revisa tus credenciales e inténtalo de nuevo.";
+    }
   } finally {
     cargando.value = false;
   }
